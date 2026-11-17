@@ -84,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         String finalDate = rawDate.isEmpty() ? "" : rawDate.substring(0, 1).toUpperCase(Locale.forLanguageTag("es-AR")) + rawDate.substring(1);
         tvDate.setText(finalDate);
 
+        dailyGoalMl = HydrationPreferences.getDailyGoal(this);
         circularProgress = findViewById(R.id.circularProgress);
         tvCurrentWater = findViewById(R.id.tvCurrentWater);
         tvGoal = findViewById(R.id.tvGoal);

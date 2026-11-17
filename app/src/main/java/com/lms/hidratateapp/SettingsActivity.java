@@ -70,6 +70,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void saveGoal() {
         Intent data = new Intent();
         data.putExtra(RESULT_GOAL_ML, selectedGoalMl);
+        HydrationPreferences.saveDailyGoal(this, selectedGoalMl);
         setResult(Activity.RESULT_OK, data);
         Toast.makeText(this, R.string.settings_goal_saved, Toast.LENGTH_SHORT).show();
         finish();
