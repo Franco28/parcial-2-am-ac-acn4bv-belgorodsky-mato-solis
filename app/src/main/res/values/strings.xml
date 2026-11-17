@@ -34,4 +34,15 @@
     <string name="goal_reached">Felicitaciones! Has cumplido tu objetivo diario de agua.</string>
     <string name="settings_future">Configuración disponible en una próxima pantalla.</string>
     <string name="coming_soon">Próximamente</string>
+
+    <string name="settings_daily_goal">Meta diaria</string>
+    <string name="settings_goal_description">Elegí cuánta agua querés tomar por día</string>
+    <string name="settings_today_consumption">Consumiste hoy: %1$s ml</string>
+    <string name="settings_goal_label">Objetivo: %1$s ml</string>
+    <string name="settings_goal_minus">Reducir 250 ml</string>
+    <string name="settings_goal_plus">Aumentar 250 ml</string>
+    <string name="settings_save">Guardar meta</string>
+    <string name="settings_back">Volver a Hoy</string>
+    <string name="settings_goal_saved">Meta diaria actualizada</string>
+    <string name="settings_goal_limits">La meta debe estar entre 500 y 10.000 ml</string>
 </resources>

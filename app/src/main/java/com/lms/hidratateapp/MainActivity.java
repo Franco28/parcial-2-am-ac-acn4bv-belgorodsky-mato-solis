@@ -1,5 +1,7 @@
 package com.lms.hidratateapp;
 
+import android.content.Intent;
+import android.app.Activity;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,6 +16,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -35,7 +39,20 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout historyContainer;
     private TextView tvEmptyHistory;
 
-    private static final int GOAL_WATER = 2000;
+    private static final int DEFAULT_GOAL_ML = 2000;
+    private int dailyGoalMl = DEFAULT_GOAL_ML;
+
+    private final ActivityResultLauncher<Intent> settingsLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    int newGoal = result.getData().getIntExtra(SettingsActivity.RESULT_GOAL_ML, dailyGoalMl);
+                    if (newGoal >= 500 && newGoal <= 10000 && newGoal % 250 == 0) {
+                        dailyGoalMl = newGoal;
+                        updateUI();
+                    }
+                }
+            }
+    );
 
     private int currentWater = 0;
     private final List<WaterRecord> recordList = new ArrayList<>();
@@ -117,7 +134,12 @@ public class MainActivity extends AppCompatActivity {
         TextView settingsNavItem = findViewById(R.id.settingsNavItem);
 
         todayNavItem.setOnClickListener(v -> mainScroll.smoothScrollTo(0, 0));
-        settingsNavItem.setOnClickListener(v -> Toast.makeText(this, R.string.coming_soon, Toast.LENGTH_SHORT).show());
+        settingsNavItem.setOnClickListener(v -> {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            intent.putExtra(SettingsActivity.EXTRA_CURRENT_GOAL_ML, dailyGoalMl);
+            intent.putExtra(SettingsActivity.EXTRA_TODAY_CONSUMED_ML, currentWater);
+            settingsLauncher.launch(intent);
+        });
 
         updateUI();
     }
@@ -131,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
 
         playWaterPourSound();
 
-        if (previousWater < GOAL_WATER && currentWater >= GOAL_WATER) {
+        if (previousWater < dailyGoalMl && currentWater >= dailyGoalMl) {
             Toast.makeText(this, R.string.goal_reached, Toast.LENGTH_LONG).show();
         }
 
@@ -175,9 +197,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateUI() {
         tvCurrentWater.setText(getString(R.string.water_amount, String.valueOf(currentWater)));
-        tvGoal.setText(getString(R.string.goal_amount, String.valueOf(GOAL_WATER)));
+        tvGoal.setText(getString(R.string.goal_amount, String.valueOf(dailyGoalMl)));
 
-        int percentage = (int) Math.round(((double) currentWater / GOAL_WATER) * 100);
+        int percentage = (int) Math.round(((double) currentWater / dailyGoalMl) * 100);
         tvPercentage.setText(getString(R.string.percentage, percentage));
 
         circularProgress.setProgress(percentage);
