@@ -168,6 +168,17 @@
             </LinearLayout>
 
             <Button
+                android:id="@+id/btnOpenTips"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_quick_secondary"
+                android:backgroundTint="@null"
+                android:text="@string/tips_open_button"
+                android:textAllCaps="false"
+                android:textColor="@color/text_primary" />
+
+            <Button
                 android:id="@+id/btnSaveGoal"
                 android:layout_width="match_parent"
                 android:layout_height="54dp"

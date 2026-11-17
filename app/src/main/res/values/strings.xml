@@ -67,4 +67,15 @@
         <item>Cada 30 minutos</item>
         <item>Cada 1 hora</item>
     </string-array>
+
+    <string name="tips_title">Información sobre el agua</string>
+    <string name="tips_description">Contenido informativo obtenido de Wikipedia</string>
+    <string name="tips_loading">Cargando información...</string>
+    <string name="tips_fallback">El agua forma parte de nuestra vida cotidiana. Podés seguir usando HidrateAPP sin conexión a Internet para registrar tus consumos.</string>
+    <string name="tips_error">No se pudo cargar el contenido en este momento.</string>
+    <string name="tips_retry">Reintentar</string>
+    <string name="tips_source">Fuente: Wikipedia, artículo «Agua»</string>
+    <string name="tips_open_source">Abrir fuente en el navegador</string>
+    <string name="tips_image_description">Imagen informativa sobre el agua</string>
+    <string name="tips_open_button">Ver información del agua</string>
 </resources>

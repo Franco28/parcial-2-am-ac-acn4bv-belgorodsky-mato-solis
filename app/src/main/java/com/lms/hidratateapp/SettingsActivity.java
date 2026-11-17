@@ -70,11 +70,14 @@ public class SettingsActivity extends AppCompatActivity {
         Button btnPlus = findViewById(R.id.btnGoalPlus);
         Button btnSave = findViewById(R.id.btnSaveGoal);
         Button btnBack = findViewById(R.id.btnSettingsBack);
+        Button btnOpenTips = findViewById(R.id.btnOpenTips);
 
         btnMinus.setOnClickListener(v -> changeGoal(-STEP_ML));
         btnPlus.setOnClickListener(v -> changeGoal(STEP_ML));
         btnSave.setOnClickListener(v -> saveGoal());
         btnBack.setOnClickListener(v -> finish());
+        btnOpenTips.setOnClickListener(v ->
+                startActivity(new Intent(this, TipsActivity.class)));
         updateGoalText();
         configureReminders();
     }
