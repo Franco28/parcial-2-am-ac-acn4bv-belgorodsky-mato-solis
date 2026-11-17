@@ -51,4 +51,20 @@
         <item quantity="one">%d registro hoy</item>
         <item quantity="other">%d registros hoy</item>
     </plurals>
+
+    <string name="reminder_title">Recordatorios</string>
+    <string name="reminder_description">Recibí un aviso para tomar agua</string>
+    <string name="reminder_enabled">Activar recordatorios</string>
+    <string name="reminder_frequency">Frecuencia</string>
+    <string name="reminder_test">Probar notificación</string>
+    <string name="reminder_test_sent">Se envió una notificación de prueba</string>
+    <string name="reminder_permission_denied">Necesitás habilitar las notificaciones para activar los recordatorios</string>
+    <string name="reminder_channel_name">Recordatorios de hidratación</string>
+    <string name="reminder_channel_description">Avisos periódicos para registrar agua</string>
+    <string name="reminder_notification_title">Es momento de tomar agua</string>
+    <string name="reminder_notification_body">Tomá un vaso de agua y registralo en HidrateAPP.</string>
+    <string-array name="reminder_intervals">
+        <item>Cada 30 minutos</item>
+        <item>Cada 1 hora</item>
+    </string-array>
 </resources>
