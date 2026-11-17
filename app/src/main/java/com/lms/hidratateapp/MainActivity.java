@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -56,20 +58,16 @@ public class MainActivity extends AppCompatActivity {
 
     private int currentWater = 0;
     private final List<WaterRecord> recordList = new ArrayList<>();
+    private final ExecutorService databaseExecutor = Executors.newSingleThreadExecutor();
+    private WaterDatabaseHelper waterDatabase;
+    private String activeDayKey;
 
-    private static class WaterRecord {
-        final int amount;
-        final String time;
-
-        WaterRecord(int amount, String time) {
-            this.amount = amount;
-            this.time = time;
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        waterDatabase = new WaterDatabaseHelper(this);
+        activeDayKey = getDayKey();
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -143,33 +141,100 @@ public class MainActivity extends AppCompatActivity {
         });
 
         updateUI();
+        loadTodayRecords();
     }
 
     private void addWater(int amount) {
-        int previousWater = currentWater;
-        currentWater += amount;
-        String timeStr = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date());
-        WaterRecord record = new WaterRecord(amount, timeStr);
-        recordList.add(0, record);
+        final long timestamp = System.currentTimeMillis();
+        databaseExecutor.execute(() -> {
+            try {
+                waterDatabase.insertRecord(amount, timestamp);
+                List<WaterRecord> today = waterDatabase.findRecordsForDay(System.currentTimeMillis());
+                runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed()) return;
+                    int previous = currentWater;
+                    displayRecords(today);
+                    playWaterPourSound();
+                    if (previous < dailyGoalMl && currentWater >= dailyGoalMl) {
+                        Toast.makeText(this, R.string.goal_reached, Toast.LENGTH_LONG).show();
+                    }
+                });
+            } catch (RuntimeException exception) {
+                handleDatabaseError(exception);
+            }
+        });
+    }
 
-        playWaterPourSound();
+    private void removeRecord(WaterRecord record) {
+        databaseExecutor.execute(() -> {
+            try {
+                boolean deleted = waterDatabase.deleteRecord(record.id);
+                List<WaterRecord> today = waterDatabase.findRecordsForDay(System.currentTimeMillis());
+                runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed()) return;
+                    displayRecords(today);
+                    if (deleted) {
+                        playWaterEraseSound();
+                        Toast.makeText(this, R.string.record_deleted, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (RuntimeException exception) {
+                handleDatabaseError(exception);
+            }
+        });
+    }
 
-        if (previousWater < dailyGoalMl && currentWater >= dailyGoalMl) {
-            Toast.makeText(this, R.string.goal_reached, Toast.LENGTH_LONG).show();
-        }
+    private void loadTodayRecords() {
+        databaseExecutor.execute(() -> {
+            try {
+                List<WaterRecord> today = waterDatabase.findRecordsForDay(System.currentTimeMillis());
+                runOnUiThread(() -> {
+                    if (!isFinishing() && !isDestroyed()) displayRecords(today);
+                });
+            } catch (RuntimeException exception) {
+                handleDatabaseError(exception);
+            }
+        });
+    }
 
+    private void displayRecords(List<WaterRecord> today) {
+        recordList.clear();
+        recordList.addAll(today);
+        long sum = 0L;
+        for (WaterRecord record : today) sum += record.amount;
+        currentWater = (int) Math.min(sum, Integer.MAX_VALUE);
         updateUI();
         rebuildHistoryViews();
     }
 
-    private void removeRecord(WaterRecord record) {
-        if (recordList.remove(record)) {
-            currentWater = Math.max(0, currentWater - record.amount);
-            playWaterEraseSound();
-            updateUI();
-            rebuildHistoryViews();
-            Toast.makeText(this, R.string.record_deleted, Toast.LENGTH_SHORT).show();
+    private void handleDatabaseError(RuntimeException exception) {
+        Log.e("HidratateApp", "Error de almacenamiento local", exception);
+        runOnUiThread(() -> {
+            if (!isFinishing() && !isDestroyed()) {
+                Toast.makeText(this, R.string.database_error, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    private String getDayKey() {
+        return new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        String today = getDayKey();
+        if (activeDayKey != null && !today.equals(activeDayKey) && waterDatabase != null) {
+            activeDayKey = today;
+            loadTodayRecords();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        databaseExecutor.execute(() -> waterDatabase.close());
+        databaseExecutor.shutdown();
+        super.onDestroy();
     }
 
     private void playWaterPourSound() {
@@ -200,7 +265,8 @@ public class MainActivity extends AppCompatActivity {
         tvCurrentWater.setText(getString(R.string.water_amount, String.valueOf(currentWater)));
         tvGoal.setText(getString(R.string.goal_amount, String.valueOf(dailyGoalMl)));
 
-        int percentage = (int) Math.round(((double) currentWater / dailyGoalMl) * 100);
+        int percentage = (int) Math.min(Integer.MAX_VALUE,
+                Math.round(((double) currentWater / dailyGoalMl) * 100));
         tvPercentage.setText(getString(R.string.percentage, percentage));
 
         circularProgress.setProgress(percentage);
@@ -227,6 +293,13 @@ public class MainActivity extends AppCompatActivity {
 
                 historyContainer.addView(rowView);
             }
+            TextView countView = new TextView(this);
+            countView.setText(getResources().getQuantityString(
+                    R.plurals.history_records_count, recordList.size(), recordList.size()));
+            countView.setTextColor(getColor(R.color.text_secondary));
+            countView.setTextSize(12);
+            countView.setPadding(12, 8, 12, 8);
+            historyContainer.addView(countView);
         }
     }
 }

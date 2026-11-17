@@ -45,4 +45,10 @@
     <string name="settings_back">Volver a Hoy</string>
     <string name="settings_goal_saved">Meta diaria actualizada</string>
     <string name="settings_goal_limits">La meta debe estar entre 500 y 10.000 ml</string>
+
+    <string name="database_error">No se pudieron actualizar los registros. Intentá nuevamente.</string>
+    <plurals name="history_records_count">
+        <item quantity="one">%d registro hoy</item>
+        <item quantity="other">%d registros hoy</item>
+    </plurals>
 </resources>
